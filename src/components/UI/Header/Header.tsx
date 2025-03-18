@@ -18,10 +18,11 @@ export default function Header() {
         </span>
       </button>
       <Offcanvas />
-      <Link to="/" className={styles.header__link}>
-        <h1 className={styles.header__title}>Herman Frelikh Clothing</h1>
-      </Link>
-
+      <div className={styles.header__titleContainer}>
+        <Link to="/" className={styles.header__link}>
+          <h1 className={styles.header__title}>Herman Frelikh Clothing</h1>
+        </Link>
+      </div>
       <nav className={styles.header__nav}>
         <Link
           to="/cart"

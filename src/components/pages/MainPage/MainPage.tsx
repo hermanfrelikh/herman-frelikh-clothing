@@ -1,22 +1,19 @@
+import { Outlet } from 'react-router-dom';
+
+import LeafletMap from '../../UI/LeafletMap';
 import MainCarousel from '../../UI/MainCarousel';
-import YandexMap from '../../UI/YandexMap';
+import Search from '../../UI/Search';
+import WomanMan from '../../UI/WomanMan';
 
 export default function MainPage() {
   return (
     <>
       <MainCarousel />
-      <form className="d-flex" role="search">
-        <input
-          className="form-control me-2"
-          type="search"
-          placeholder="Search"
-          aria-label="Search"
-        ></input>
-        <button className="btn btn-outline-success" type="submit">
-          Search
-        </button>
-      </form>
-      <YandexMap />
+
+      <WomanMan />
+      <Search />
+      <Outlet />
+      <LeafletMap />
     </>
   );
 }

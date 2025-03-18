@@ -1,0 +1,21 @@
+.map {
+  transition: pointer-events 0.3s;
+  height: 500px;
+  width: 100%;
+
+  @media screen and (max-width: 1300px) {
+    height: 450px;
+  }
+  @media screen and (max-width: 1000px) {
+    height: 400px;
+  }
+  @media screen and (max-width: 700px) {
+    height: 350px;
+  }
+  @media screen and (max-width: 500px) {
+    height: 300px;
+  }
+  @media screen and (max-width: 400px) {
+    height: 250px;
+  }
+}

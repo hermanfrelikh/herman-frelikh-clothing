@@ -1,0 +1,14 @@
+.popularProducts {
+  padding: 30px;
+  &__title {
+    display: flex;
+    justify-content: center;
+  }
+  &__products {
+    padding: 30px;
+    padding: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+  }
+}
