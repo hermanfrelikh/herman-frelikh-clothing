@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Offcanvas() {
   return (
     <div
@@ -21,9 +23,15 @@ export default function Offcanvas() {
         ></button>
       </div>
       <div className="offcanvas-body">
-        <p>Избранные</p>
-        <p>Контакты</p>
-        <p>Try scrolling the rest of the.</p>
+        <p>
+          <Link to="/favorites">Избранные</Link>
+        </p>
+        <p>
+          <Link to="/cart">Корзина</Link>
+        </p>
+        <p>
+          <Link to="/profile">Профиль</Link>
+        </p>
       </div>
     </div>
   );

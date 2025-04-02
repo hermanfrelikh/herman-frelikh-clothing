@@ -1,5 +1,39 @@
 .container {
-  &__slider {
-    width: 500px;
+  display: flex;
+  align-items: start;
+  justify-content: space-around;
+  flex-direction: row;
+  &__info {
+    width: 1000px;
+  }
+  &__title {
+    margin-top: 10px;
+    margin-bottom: 30px;
+  }
+  &__price {
+    margin-bottom: 20px;
+  }
+  &__rating {
+    margin-bottom: 20px;
+  }
+}
+
+.fadeInOut {
+  animation: fadeInOut 2s ease-in-out;
+  margin-bottom: 10px;
+
+  &:first-of-type {
+    margin-top: 10px;
+  }
+}
+
+@keyframes fadeInOut {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  10%,
+  90% {
+    opacity: 1;
   }
 }

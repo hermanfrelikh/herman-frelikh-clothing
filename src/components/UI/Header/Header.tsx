@@ -1,9 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import Offcanvas from '../Offcanvas';
 import styles from './Header.module.scss';
 
 export default function Header() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Удаляем токен
+    navigate('/login'); // Переходим на страницу входа
+  };
+
   return (
     <header className={styles.header}>
       <button
@@ -24,30 +31,14 @@ export default function Header() {
         </Link>
       </div>
       <nav className={styles.header__nav}>
-        <Link
-          to="/cart"
-          className={`${styles.header__btn} ${styles.header__link}`}
-        >
-          <span className={`material-symbols-outlined ${styles.header__icon}`}>
-            shopping_cart
-          </span>
-        </Link>
-        <Link
-          to="/profile"
-          className={`${styles.header__btn} ${styles.header__link}`}
-        >
-          <span className={`material-symbols-outlined ${styles.header__icon}`}>
-            person
-          </span>
-        </Link>
-        <Link
-          to="/login"
+        <button
+          onClick={handleLogout}
           className={`${styles.header__btn} ${styles.header__link}`}
         >
           <span className={`material-symbols-outlined ${styles.header__icon}`}>
             logout
           </span>
-        </Link>
+        </button>
       </nav>
     </header>
   );

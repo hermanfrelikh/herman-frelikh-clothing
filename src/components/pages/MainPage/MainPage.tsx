@@ -9,7 +9,6 @@ export default function MainPage() {
   return (
     <>
       <MainCarousel />
-
       <WomanMan />
       <Search />
       <Outlet />

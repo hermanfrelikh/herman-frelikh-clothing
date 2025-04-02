@@ -5,6 +5,7 @@ const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan'); // Логирование запросов
 const productsRouter = require('./routes/products');
+const authRouter = require('./routes/auth'); // Новый роутер
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +17,7 @@ app.use(morgan('combined')); // Логирование запросов
 
 // Routes
 app.use('/api/products', productsRouter);
+app.use('/api/auth', authRouter); // Новый маршрут для аутентификации
 
 // Swagger setup
 const swaggerOptions = {
