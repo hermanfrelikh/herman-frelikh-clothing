@@ -9,7 +9,72 @@ const db = new sqlite3.Database('./database.sqlite');
 // Секретный ключ для JWT
 const SECRET_KEY = 'your_secret_key_here';
 
-// Маршрут для регистрации пользователя
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Уникальный ID пользователя.
+ *         username:
+ *           type: string
+ *           description: Имя пользователя.
+ *         email:
+ *           type: string
+ *           description: Email пользователя.
+ *         password_hash:
+ *           type: string
+ *           description: Хэшированный пароль пользователя.
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Регистрация нового пользователя.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Имя пользователя.
+ *               email:
+ *                 type: string
+ *                 description: Email пользователя.
+ *               password:
+ *                 type: string
+ *                 description: Пароль пользователя.
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *     responses:
+ *       201:
+ *         description: Пользователь успешно зарегистрирован.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешной регистрации.
+ *                 token:
+ *                   type: string
+ *                   description: JWT-токен для авторизации.
+ *       400:
+ *         description: Ошибка валидации или пользователь с таким email уже существует.
+ *       500:
+ *         description: Ошибка сервера.
+ */
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -60,7 +125,44 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Маршрут для авторизации пользователя
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Авторизация пользователя.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Email пользователя.
+ *               password:
+ *                 type: string
+ *                 description: Пароль пользователя.
+ *             required:
+ *               - email
+ *               - password
+ *     responses:
+ *       200:
+ *         description: Пользователь успешно авторизован.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT-токен для авторизации.
+ *       400:
+ *         description: Неверные данные для входа.
+ *       500:
+ *         description: Ошибка сервера.
+ */
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 

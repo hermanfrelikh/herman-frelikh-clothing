@@ -7,8 +7,8 @@ export default function Header() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Удаляем токен
-    navigate('/login'); // Переходим на страницу входа
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
   return (

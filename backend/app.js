@@ -4,8 +4,11 @@ const cors = require('cors');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const morgan = require('morgan'); // Логирование запросов
+
+// Импорт роутеров
 const productsRouter = require('./routes/products');
-const authRouter = require('./routes/auth'); // Новый роутер
+const authRouter = require('./routes/auth');
+const cartRouter = require('./routes/cart'); // Новый роутер для корзины
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -17,7 +20,8 @@ app.use(morgan('combined')); // Логирование запросов
 
 // Routes
 app.use('/api/products', productsRouter);
-app.use('/api/auth', authRouter); // Новый маршрут для аутентификации
+app.use('/api/auth', authRouter); // Роуты для аутентификации
+app.use('/api/cart', cartRouter); // Роуты для корзины
 
 // Swagger setup
 const swaggerOptions = {
@@ -33,8 +37,22 @@ const swaggerOptions = {
         url: `http://localhost:${PORT}`,
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
-  apis: ['./routes/*.js'],
+  apis: ['./routes/*.js'], // Автоматически сканирует все файлы в папке routes
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);

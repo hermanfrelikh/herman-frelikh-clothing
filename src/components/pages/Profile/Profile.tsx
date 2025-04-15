@@ -12,10 +12,8 @@ export default function Profile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Получаем данные пользователя из JWT-токена
     const data = getUserDataFromToken();
     if (!data) {
-      // Если токена нет, перенаправляем на страницу входа
       navigate('/login');
     } else {
       setUserData(data);
@@ -39,18 +37,15 @@ export default function Profile() {
             <button style={{ marginTop: '10px' }}>Загрузить аватар</button>
           </div>
 
-          {/* Имя пользователя */}
           <p>
             <strong>Имя пользователя:</strong>{' '}
             {userData.username || 'Не указано'}
           </p>
 
-          {/* Email */}
           <p>
             <strong>Email:</strong> {userData.email}
           </p>
 
-          {/* Кнопки для перехода */}
           <div style={{ marginTop: '20px' }}>
             <Link
               to="/cart"

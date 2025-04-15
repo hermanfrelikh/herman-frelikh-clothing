@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Импортируем Link
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -20,10 +20,8 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Сохраняем JWT-токен в localStorage
         localStorage.setItem('token', data.token);
 
-        // Перенаправляем на главную страницу
         navigate('/');
       } else {
         setError(data.error || 'Ошибка авторизации');
@@ -37,7 +35,6 @@ const Login = () => {
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
       <h2>Авторизация</h2>
 
-      {/* Отображение ошибок */}
       {error && (
         <div
           style={{ display: 'inline-block', marginBottom: '1rem' }}
@@ -48,9 +45,7 @@ const Login = () => {
         </div>
       )}
 
-      {/* Форма авторизации */}
       <form onSubmit={handleSubmit}>
-        {/* Поле для email */}
         <div className="form-floating mb-3">
           <input
             type="email"
@@ -64,7 +59,6 @@ const Login = () => {
           <label htmlFor="floatingEmail">Email адрес</label>
         </div>
 
-        {/* Поле для пароля */}
         <div className="form-floating mb-3">
           <input
             type="password"
@@ -78,13 +72,11 @@ const Login = () => {
           <label htmlFor="floatingPassword">Пароль</label>
         </div>
 
-        {/* Кнопка отправки формы */}
         <button type="submit" className="btn btn-dark w-100">
           Войти
         </button>
       </form>
 
-      {/* Ссылка на страницу регистрации */}
       <p style={{ marginTop: '1rem', textAlign: 'center' }}>
         Нет аккаунта?{' '}
         <Link

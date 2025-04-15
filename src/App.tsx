@@ -38,7 +38,6 @@ function App() {
 
   return (
     <Routes>
-      {/* Главная страница теперь защищена */}
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<Layout />}>
           <Route path="/" element={<MainPage />}>
@@ -69,11 +68,9 @@ function App() {
         </Route>
       </Route>
 
-      {/* Страницы регистрации и входа доступны всем */}
       <Route path="/registration" element={<Registration />} />
       <Route path="/login" element={<Login />} />
 
-      {/* 404 страница */}
       <Route path="*" element={<h1>404</h1>} />
     </Routes>
   );

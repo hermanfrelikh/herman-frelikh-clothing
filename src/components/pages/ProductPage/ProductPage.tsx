@@ -1,14 +1,9 @@
-import Rating from '@mui/material/Rating';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Product } from '../../../@types/Product';
-import { removeCartItem, setCartItem } from '../../../redux/slices/cartSlice';
-import {
-  removeFavorites,
-  setFavorites,
-} from '../../../redux/slices/favoritesSlice';
-import { RootState } from '../../../redux/store';
+import { addToCart, removeFromCart } from '../../../redux/slices/cartSlice';
+import { AppDispatch, RootState } from '../../../redux/store';
 import BackButton from '../../UI/BackButton';
 import ProductCarousel from '../../UI/ProductCarousel';
 import styles from './ProductPage.module.scss';
@@ -19,147 +14,110 @@ interface ProductPageProps {
 
 const ProductPage: React.FC<ProductPageProps> = React.memo(({ product }) => {
   const [size, setSize] = useState<string>(product.sizes[0]);
-  const [showFavoriteAlert, setShowFavoriteAlert] = useState<boolean>(false);
   const [showCartAlert, setShowCartAlert] = useState<boolean>(false);
-  const favoritesProducts = useSelector(
-    (state: RootState) => state.favoritesSlice,
-  );
-  const cartItems = useSelector((state: RootState) => state.cartSlice);
-  const dispatch = useDispatch();
 
-  const [isFavorite, setIsFavorite] = useState<boolean>(() =>
-    favoritesProducts.some(
-      (favProduct: Product) => favProduct.id === product.id,
-    ),
-  );
-  const [inCart, setInCart] = useState<boolean>(() =>
-    cartItems.some((cartItem: any) => cartItem.id === product.id),
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Получаем данные корзины из Redux
+  const cartItems = useSelector((state: RootState) => state.cartSlice.items);
+
+  // Проверяем, есть ли товар с выбранным размером в корзине
+  const isItemInCart = cartItems.some(
+    item => item.product_id === product.id && item.size === size,
   );
 
+  // Отслеживаем изменения в данных корзины
   useEffect(() => {
-    setIsFavorite(
-      favoritesProducts.some(
-        (favProduct: Product) => favProduct.id === product.id,
-      ),
-    );
-    setInCart(cartItems.some((cartItem: any) => cartItem.id === product.id));
-  }, [favoritesProducts, cartItems, product.id]);
+    console.log('Cart items updated:', cartItems); // Логируем для отладки
+  }, [cartItems]);
 
-  const handleFavoriteClick = () => {
-    if (!isFavorite) {
-      dispatch(setFavorites(product));
-    } else {
-      dispatch(removeFavorites(product));
-    }
-    setIsFavorite(!isFavorite);
-    setShowFavoriteAlert(true);
-    setTimeout(() => setShowFavoriteAlert(false), 2000);
-  };
-
+  // Обработчик добавления/удаления товара из корзины
   const handleCartClick = () => {
-    if (!inCart) {
-      dispatch(
-        setCartItem({
-          id: product.id,
-          title: product.title,
-          price: product.price,
-          images: product.images,
-          size: size,
-          rating: product.rating,
-          gender: product.gender,
-          category: product.category,
-        }),
+    if (isItemInCart) {
+      // Если товар уже в корзине, удаляем его
+      const cartItem = cartItems.find(
+        item => item.product_id === product.id && item.size === size,
       );
-      setShowCartAlert(true);
-      setTimeout(() => setShowCartAlert(false), 2000);
+      if (cartItem) {
+        dispatch(removeFromCart(cartItem.id));
+        setShowCartAlert(true);
+        setTimeout(() => setShowCartAlert(false), 2000);
+      }
     } else {
+      // Если товара нет в корзине, добавляем его
       dispatch(
-        removeCartItem({
-          id: product.id,
-          title: product.title,
-          price: product.price,
-          images: product.images,
-          size: size,
-          rating: product.rating,
-          gender: product.gender,
-          category: product.category,
+        addToCart({
+          product_id: product.id,
+          size,
+          quantity: 1,
         }),
       );
       setShowCartAlert(true);
       setTimeout(() => setShowCartAlert(false), 2000);
     }
-    setInCart(!inCart);
   };
 
   return (
-    <>
-      <div className={styles.container}>
-        <BackButton />
-        <ProductCarousel product={product} />
-        <div className={styles.container__info}>
-          <h3 className={styles.container__title}>{product.title}</h3>
-          <h5 className={styles.container__price}>{product.price + '$'}</h5>
+    <div className={styles.container}>
+      {/* Кнопка "Назад" */}
+      <BackButton />
 
-          <Rating
-            name="half-rating-read"
-            defaultValue={product.rating}
-            precision={0.1}
-            readOnly
-            className={styles.container__rating}
-          />
+      {/* Карусель изображений продукта */}
+      <ProductCarousel product={product} />
 
-          <select
-            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setSize(product.sizes[+e.target.value])
-            }
-            style={{ width: '110px' }}
-            className="form-select form-select-lg mb-3"
-            aria-label="Large select example"
-          >
-            {product.sizes.map((size, index) => (
-              <option key={index} value={index}>
-                {size}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleFavoriteClick}
-            style={{ marginRight: '20px' }}
-          >
-            {isFavorite ? 'Удалить из избранного' : 'В избранное'}
-          </button>
-          <button
-            type="button"
-            className={`btn ${inCart ? 'btn-danger' : 'btn-success'}`}
-            onClick={handleCartClick}
-          >
-            {inCart ? 'Удалить из корзины' : 'В корзину'}
-          </button>
-          {showFavoriteAlert && (
-            <div
-              style={{ width: '270px' }}
-              className={`alert alert-light ${styles.fadeInOut}`}
-              role="alert"
-            >
-              {!isFavorite
-                ? 'Товар удалён из избранных'
-                : 'Товар добавлен в избранные'}
-            </div>
-          )}
-          {showCartAlert && (
-            <div
-              style={{ width: '270px' }}
-              className={`alert alert-${inCart ? 'success' : 'danger'} ${styles.fadeInOut}`}
-              role="alert"
-            >
-              {!inCart ? 'Товар удалён из корзины' : 'Товар добавлен в корзину'}
-            </div>
-          )}
+      {/* Информация о продукте */}
+      <div className={styles.container__info}>
+        <h3 className={styles.container__title}>{product.title}</h3>
+        <h5 className={styles.container__price}>{product.price + '$'}</h5>
+
+        {/* Рейтинг продукта */}
+        <div className={styles.container__rating}>
+          <span>Рейтинг: </span>
+          <span>{product.rating}</span>
         </div>
+
+        {/* Выбор размера */}
+        <select
+          value={product.sizes.indexOf(size)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+            setSize(product.sizes[+e.target.value])
+          }
+          style={{ width: '110px' }}
+          className="form-select form-select-lg mb-3"
+          aria-label="Large select example"
+        >
+          {product.sizes.map((sizeOption, index) => (
+            <option key={index} value={index}>
+              {sizeOption}
+            </option>
+          ))}
+        </select>
+
+        {/* Кнопка добавления/удаления из корзины */}
+        <button
+          type="button"
+          className={`btn ${isItemInCart ? 'btn-danger' : 'btn-success'}`}
+          onClick={handleCartClick}
+        >
+          {isItemInCart ? 'Удалить из корзины' : 'В корзину'}
+        </button>
+
+        {/* Уведомление о добавлении/удалении из корзины */}
+        {showCartAlert && (
+          <div
+            style={{ width: '270px' }}
+            className={`alert ${isItemInCart ? 'alert-danger' : 'alert-success'} ${
+              styles.fadeInOut
+            }`}
+            role="alert"
+          >
+            {isItemInCart
+              ? 'Товар удален из корзины'
+              : 'Товар добавлен в корзину'}
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 });
 

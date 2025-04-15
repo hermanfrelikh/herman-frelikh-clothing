@@ -1,12 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import cartSlice from './slices/cartSlice';
-import categoriesSlice from './slices/categoriesSlice';
-import favoritesSlice from './slices/favoritesSlice';
-import productsSlice from './slices/productsSlice';
+import cartReducer from './slices/cartSlice';
+import categoriesReducer from './slices/categoriesSlice';
+import favoritesReducer from './slices/favoritesSlice';
+import productsReducer from './slices/productsSlice';
 
 export const store = configureStore({
-  reducer: { productsSlice, favoritesSlice, cartSlice, categoriesSlice },
+  reducer: {
+    productsSlice: productsReducer,
+    favoritesSlice: favoritesReducer,
+    cartSlice: cartReducer,
+    categoriesSlice: categoriesReducer,
+  },
 });
 
 export type RootState = ReturnType<typeof store.getState>;

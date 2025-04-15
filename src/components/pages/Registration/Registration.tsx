@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Импортируем Link
+import { Link, useNavigate } from 'react-router-dom';
 
 const Registration = () => {
   const [username, setUsername] = useState('');
@@ -21,7 +21,6 @@ const Registration = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Успешная регистрация → перенаправляем на страницу входа
         navigate('/login');
       } else {
         setError(data.error || 'Ошибка регистрации');
@@ -35,7 +34,6 @@ const Registration = () => {
     <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
       <h2>Регистрация</h2>
 
-      {/* Отображение ошибок */}
       {error && (
         <div
           style={{ display: 'inline-block', marginBottom: '1rem' }}
@@ -46,9 +44,7 @@ const Registration = () => {
         </div>
       )}
 
-      {/* Форма регистрации */}
       <form onSubmit={handleSubmit}>
-        {/* Поле для имени пользователя */}
         <div className="form-floating mb-3">
           <input
             type="text"
@@ -62,7 +58,6 @@ const Registration = () => {
           <label htmlFor="floatingUsername">Имя пользователя</label>
         </div>
 
-        {/* Поле для email */}
         <div className="form-floating mb-3">
           <input
             type="email"
@@ -76,7 +71,6 @@ const Registration = () => {
           <label htmlFor="floatingEmail">Email адрес</label>
         </div>
 
-        {/* Поле для пароля */}
         <div className="form-floating mb-3">
           <input
             type="password"
@@ -90,13 +84,11 @@ const Registration = () => {
           <label htmlFor="floatingPassword">Пароль</label>
         </div>
 
-        {/* Кнопка отправки формы */}
         <button type="submit" className="btn btn-dark w-100">
           Зарегистрироваться
         </button>
       </form>
 
-      {/* Ссылка на страницу входа */}
       <p style={{ marginTop: '1rem', textAlign: 'center' }}>
         Уже есть аккаунт?{' '}
         <Link
