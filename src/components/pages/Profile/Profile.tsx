@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { getUserDataFromToken } from '../../../utils/auth';
 import BackButton from '../../UI/BackButton';
+import styles from './Profile.module.scss';
 
 export default function Profile() {
   const [userData, setUserData] = useState<{
@@ -21,54 +22,37 @@ export default function Profile() {
   }, [navigate]);
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      <BackButton />
-      <h2>Профиль</h2>
+    <div className={styles.profilePage}>
+      {/* Шапка с кнопкой "Назад" и заголовком */}
+      <div className={styles.header}>
+        <BackButton className={styles.backButton} />
+        <h2 className={styles.title}>Профиль</h2>
+      </div>
 
-      {userData ? (
-        <div>
-          {/* Аватар */}
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <img
-              src="https://picsum.photos/150"
-              alt="Avatar"
-              style={{ borderRadius: '50%', width: '150px', height: '150px' }}
-            />
-            <button style={{ marginTop: '10px' }}>Загрузить аватар</button>
-          </div>
-
-          <p>
-            <strong>Имя пользователя:</strong>{' '}
-            {userData.username || 'Не указано'}
-          </p>
-
-          <p>
-            <strong>Email:</strong> {userData.email}
-          </p>
-
-          <div style={{ marginTop: '20px' }}>
-            <Link
-              to="/cart"
-              style={{
-                display: 'block',
-                marginBottom: '10px',
-                color: 'blue',
-                textDecoration: 'underline',
-              }}
-            >
-              Перейти в корзину
-            </Link>
-            <Link
-              to="/favorites"
-              style={{ color: 'blue', textDecoration: 'underline' }}
-            >
-              Перейти в избранные товары
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <p>Данные пользователя не найдены.</p>
-      )}
+      {/* Основное содержимое */}
+      <div className={styles.content}>
+        {userData ? (
+          <>
+            <p>
+              <strong>Имя пользователя:</strong>{' '}
+              {userData.username || 'Не указано'}
+            </p>
+            <p>
+              <strong>Email:</strong> {userData.email}
+            </p>
+            <div className={styles.links}>
+              <Link to="/cart" className={styles.link}>
+                Перейти в корзину
+              </Link>
+              <Link to="/favorites" className={styles.link}>
+                Перейти в избранные товары
+              </Link>
+            </div>
+          </>
+        ) : (
+          <p className={styles.noData}>Данные пользователя не найдены.</p>
+        )}
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ export interface CartItem {
   title: string;
   price: number;
   images: string[];
-  rating?: number; // Опционально
-  gender?: string; // Опционально
-  category?: string; // Опционально
+  rating?: number;
+  gender?: string;
+  category?: string;
 }

@@ -17,6 +17,7 @@ const initialState: CartState = {
   error: null,
 };
 
+// Асинхронный thunk для загрузки корзины
 export const fetchCart = createAsyncThunk('cart/fetchCart', async () => {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('No token found');
@@ -27,23 +28,30 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async () => {
   return response.data as CartItem[];
 });
 
+// Асинхронный thunk для добавления товара в корзину
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async ({
     product_id,
     size,
     quantity,
+    title,
+    price,
+    images,
   }: {
     product_id: number;
     size: string;
     quantity: number;
+    title: string;
+    price: number;
+    images: string[];
   }) => {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('No token found');
 
     const response = await axios.post(
       API_BASE_URL,
-      { product_id, size, quantity },
+      { product_id, size, quantity, title, price, images },
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -52,6 +60,7 @@ export const addToCart = createAsyncThunk(
   },
 );
 
+// Асинхронный thunk для удаления товара из корзины
 export const removeFromCart = createAsyncThunk(
   'cart/removeFromCart',
   async (id: number) => {
@@ -65,6 +74,7 @@ export const removeFromCart = createAsyncThunk(
   },
 );
 
+// Создание слайса для корзины
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -84,7 +94,20 @@ const cartSlice = createSlice({
         state.error = action.error.message || 'Failed to fetch cart';
       })
       .addCase(addToCart.fulfilled, (state, action) => {
-        state.items.push(action.payload);
+        // Проверяем, существует ли уже такой товар в корзине
+        const existingItem = state.items.find(
+          item =>
+            item.product_id === action.payload.product_id &&
+            item.size === action.payload.size,
+        );
+
+        if (existingItem) {
+          // Если товар уже есть, увеличиваем его количество
+          existingItem.quantity += action.payload.quantity;
+        } else {
+          // Если товара нет, добавляем новый элемент
+          state.items.push(action.payload);
+        }
       })
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item.id !== action.payload);

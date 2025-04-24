@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 interface СardProps {
   title: string;
   price: number;
-  image: string;
+  image: string | null;
   secondImage: string;
 }
 
 const Card: React.FC<СardProps> = ({ image, title, price, secondImage }) => {
-  const [img, setImg] = useState<string>(image);
+  const [img, setImg] = useState<string | null>(image);
   const navigate = useNavigate();
 
   return (
@@ -23,7 +23,7 @@ const Card: React.FC<СardProps> = ({ image, title, price, secondImage }) => {
       <img
         onMouseEnter={() => setImg(secondImage)}
         onMouseLeave={() => setImg(image)}
-        src={img}
+        src={img || ''}
         className="card-img-top"
         alt={title}
       ></img>

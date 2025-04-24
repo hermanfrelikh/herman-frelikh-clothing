@@ -1,0 +1,55 @@
+.profilePage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 70vh;
+  padding: 20px;
+  background-color: #f8f9fa;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.backButton {
+  margin-left: 30px;
+}
+
+.title {
+  margin-left: auto;
+  text-align: center;
+  flex-grow: 1;
+  font-size: 24px;
+  color: #333;
+}
+
+.content {
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+}
+
+/* Ссылки */
+.links {
+  margin-top: 20px;
+}
+
+.link {
+  display: block;
+  margin-bottom: 10px;
+  color: #007bff;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.noData {
+  text-align: center;
+  color: #6c757d;
+}

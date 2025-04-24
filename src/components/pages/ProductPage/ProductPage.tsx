@@ -2,7 +2,11 @@ import React, { ChangeEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Product } from '../../../@types/Product';
-import { addToCart, removeFromCart } from '../../../redux/slices/cartSlice';
+import { addToCart } from '../../../redux/slices/cartSlice';
+import {
+  addToFavorites,
+  removeFromFavorites,
+} from '../../../redux/slices/favoritesSlice';
 import { AppDispatch, RootState } from '../../../redux/store';
 import BackButton from '../../UI/BackButton';
 import ProductCarousel from '../../UI/ProductCarousel';
@@ -15,68 +19,58 @@ interface ProductPageProps {
 const ProductPage: React.FC<ProductPageProps> = React.memo(({ product }) => {
   const [size, setSize] = useState<string>(product.sizes[0]);
   const [showCartAlert, setShowCartAlert] = useState<boolean>(false);
+  const [showFavoritesAlert, setShowFavoritesAlert] = useState<boolean>(false);
 
   const dispatch = useDispatch<AppDispatch>();
 
-  // Получаем данные корзины из Redux
-  const cartItems = useSelector((state: RootState) => state.cartSlice.items);
-
-  // Проверяем, есть ли товар с выбранным размером в корзине
-  const isItemInCart = cartItems.some(
-    item => item.product_id === product.id && item.size === size,
+  const favorites = useSelector(
+    (state: RootState) => state.favoritesSlice.items,
   );
 
-  // Отслеживаем изменения в данных корзины
-  useEffect(() => {
-    console.log('Cart items updated:', cartItems); // Логируем для отладки
-  }, [cartItems]);
+  const isFavorite = Array.isArray(favorites)
+    ? favorites.some(item => item.id === product.id)
+    : false;
 
-  // Обработчик добавления/удаления товара из корзины
   const handleCartClick = () => {
-    if (isItemInCart) {
-      // Если товар уже в корзине, удаляем его
-      const cartItem = cartItems.find(
-        item => item.product_id === product.id && item.size === size,
-      );
-      if (cartItem) {
-        dispatch(removeFromCart(cartItem.id));
-        setShowCartAlert(true);
-        setTimeout(() => setShowCartAlert(false), 2000);
-      }
+    dispatch(
+      addToCart({
+        product_id: product.id,
+        size,
+        quantity: 1,
+        title: product.title,
+        price: product.price,
+        images: product.images,
+      }),
+    );
+    setShowCartAlert(true);
+    setTimeout(() => setShowCartAlert(false), 2000);
+  };
+
+  const handleFavoritesClick = () => {
+    if (isFavorite) {
+      dispatch(removeFromFavorites(product.id));
     } else {
-      // Если товара нет в корзине, добавляем его
-      dispatch(
-        addToCart({
-          product_id: product.id,
-          size,
-          quantity: 1,
-        }),
-      );
-      setShowCartAlert(true);
-      setTimeout(() => setShowCartAlert(false), 2000);
+      dispatch(addToFavorites(product));
     }
+    setShowFavoritesAlert(true);
+    setTimeout(() => setShowFavoritesAlert(false), 2000);
   };
 
   return (
     <div className={styles.container}>
-      {/* Кнопка "Назад" */}
       <BackButton />
 
-      {/* Карусель изображений продукта */}
       <ProductCarousel product={product} />
 
-      {/* Информация о продукте */}
       <div className={styles.container__info}>
         <h3 className={styles.container__title}>{product.title}</h3>
         <h5 className={styles.container__price}>{product.price + '$'}</h5>
 
-        {/* Рейтинг продукта */}
         <div className={styles.container__rating}>
           <span>Рейтинг: </span>
           <span>{product.rating}</span>
         </div>
 
-        {/* Выбор размера */}
         <select
           value={product.sizes.indexOf(size)}
           onChange={(e: ChangeEvent<HTMLSelectElement>) =>
@@ -93,27 +87,42 @@ const ProductPage: React.FC<ProductPageProps> = React.memo(({ product }) => {
           ))}
         </select>
 
-        {/* Кнопка добавления/удаления из корзины */}
         <button
           type="button"
-          className={`btn ${isItemInCart ? 'btn-danger' : 'btn-success'}`}
+          className="btn btn-success"
           onClick={handleCartClick}
         >
-          {isItemInCart ? 'Удалить из корзины' : 'В корзину'}
+          Добавить в корзину
         </button>
 
-        {/* Уведомление о добавлении/удалении из корзины */}
+        <button
+          type="button"
+          className={`btn ${isFavorite ? 'btn-danger' : 'btn-primary'} ms-2`}
+          onClick={handleFavoritesClick}
+        >
+          {isFavorite ? 'Удалить из избранных' : 'Добавить в избранные'}
+        </button>
         {showCartAlert && (
           <div
             style={{ width: '270px' }}
-            className={`alert ${isItemInCart ? 'alert-danger' : 'alert-success'} ${
-              styles.fadeInOut
-            }`}
+            className="alert alert-success fadeInOut"
             role="alert"
           >
-            {isItemInCart
-              ? 'Товар удален из корзины'
-              : 'Товар добавлен в корзину'}
+            Товар добавлен в корзину
+          </div>
+        )}
+
+        {showFavoritesAlert && (
+          <div
+            style={{ width: '270px' }}
+            className={`alert ${
+              isFavorite ? 'alert-success' : 'alert-danger'
+            } fadeInOut`}
+            role="alert"
+          >
+            {isFavorite
+              ? 'Товар добавлен в избранные'
+              : 'Товар удален из избранных'}
           </div>
         )}
       </div>

@@ -1,8 +1,9 @@
 const express = require('express');
-const router = express.Router();
 const jwt = require('jsonwebtoken');
 const db = require('../db');
 const SECRET_KEY = 'your_secret_key_here'; // Убедитесь, что этот ключ совпадает с auth.js
+
+const router = express.Router();
 
 // Middleware для проверки JWT
 function authenticateToken(req, res, next) {
@@ -20,10 +21,50 @@ function authenticateToken(req, res, next) {
 
 /**
  * @swagger
- * /api/cart:
+ * components:
+ *   schemas:
+ *     FavoriteItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: Уникальный ID избранного товара.
+ *         product_id:
+ *           type: integer
+ *           description: ID товара.
+ *         title:
+ *           type: string
+ *           description: Название товара.
+ *         price:
+ *           type: number
+ *           description: Цена товара.
+ *         images:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Список изображений товара.
+ *         sizes:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Доступные размеры товара.
+ *         rating:
+ *           type: number
+ *           description: Рейтинг товара.
+ *         gender:
+ *           type: string
+ *           description: Пол (например, "man" или "woman").
+ *         category:
+ *           type: string
+ *           description: Категория товара.
+ */
+
+/**
+ * @swagger
+ * /api/favorites:
  *   post:
- *     summary: Добавить товар в корзину.
- *     tags: [Cart]
+ *     summary: Добавить товар в избранное.
+ *     tags: [Favorites]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -36,19 +77,11 @@ function authenticateToken(req, res, next) {
  *               product_id:
  *                 type: integer
  *                 description: ID товара.
- *               size:
- *                 type: string
- *                 description: Размер товара.
- *               quantity:
- *                 type: integer
- *                 description: Количество товара.
  *             required:
  *               - product_id
- *               - size
- *               - quantity
  *     responses:
  *       200:
- *         description: Товар успешно добавлен в корзину.
+ *         description: Товар успешно добавлен в избранное.
  *         content:
  *           application/json:
  *             schema:
@@ -66,14 +99,9 @@ function authenticateToken(req, res, next) {
  */
 router.post('/', authenticateToken, async (req, res) => {
   const { userId } = req.user; // Используем userId из токена
-  const { product_id, size, quantity } = req.body;
+  const { product_id } = req.body;
 
   try {
-    // Проверяем, переданы ли все необходимые поля
-    if (!product_id || !size || !quantity) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
     // Проверяем, существует ли товар с таким ID
     const productExists = await new Promise((resolve, reject) => {
       db.get(
@@ -90,11 +118,11 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Проверяем, есть ли уже такой товар в корзине
+    // Проверяем, есть ли уже такой товар в избранном
     const existingItem = await new Promise((resolve, reject) => {
       db.get(
-        'SELECT * FROM cart WHERE user_id = ? AND product_id = ? AND size = ?',
-        [userId, product_id, size],
+        'SELECT * FROM favorites WHERE user_id = ? AND product_id = ?',
+        [userId, product_id],
         (err, row) => {
           if (err) return reject(err);
           resolve(row);
@@ -103,34 +131,22 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     if (existingItem) {
-      // Если товар уже есть, увеличиваем количество
-      await new Promise((resolve, reject) => {
-        db.run(
-          'UPDATE cart SET quantity = quantity + ? WHERE id = ?',
-          [quantity, existingItem.id],
-          err => {
-            if (err) return reject(err);
-            resolve();
-          },
-        );
-      });
-
-      res.status(200).json({ message: 'Product quantity updated in cart' });
-    } else {
-      // Если товара нет, добавляем новый элемент в корзину
-      await new Promise((resolve, reject) => {
-        db.run(
-          'INSERT INTO cart (user_id, product_id, size, quantity) VALUES (?, ?, ?, ?)',
-          [userId, product_id, size, quantity],
-          err => {
-            if (err) return reject(err);
-            resolve();
-          },
-        );
-      });
-
-      res.status(200).json({ message: 'Product added to cart' });
+      return res.status(400).json({ error: 'Product already in favorites' });
     }
+
+    // Добавляем новый товар в избранное
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO favorites (user_id, product_id) VALUES (?, ?)',
+        [userId, product_id],
+        err => {
+          if (err) return reject(err);
+          resolve();
+        },
+      );
+    });
+
+    res.status(200).json({ message: 'Product added to favorites' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Server error' });
@@ -139,21 +155,21 @@ router.post('/', authenticateToken, async (req, res) => {
 
 /**
  * @swagger
- * /api/cart:
+ * /api/favorites:
  *   get:
- *     summary: Получить все товары в корзине текущего пользователя.
- *     tags: [Cart]
+ *     summary: Получить все товары в избранном текущего пользователя.
+ *     tags: [Favorites]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Список товаров в корзине.
+ *         description: Список товаров в избранном.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/CartItem'
+ *                 $ref: '#/components/schemas/FavoriteItem'
  *       401:
  *         description: Неавторизованный доступ.
  *       500:
@@ -163,29 +179,29 @@ router.get('/', authenticateToken, async (req, res) => {
   const { userId } = req.user;
 
   try {
-    const cartItems = await new Promise((resolve, reject) => {
+    const favoriteItems = await new Promise((resolve, reject) => {
       db.all(
         `
-        SELECT c.id, c.product_id, c.size, c.quantity, p.title, p.price, p.images, p.rating, p.gender, p.category
-        FROM cart c
-        JOIN products p ON c.product_id = p.id
-        WHERE c.user_id = ?
+        SELECT p.*
+        FROM favorites f
+        JOIN products p ON f.product_id = p.id
+        WHERE f.user_id = ?
         `,
         [userId],
         (err, rows) => {
           if (err) return reject(err);
-
-          const validItems = rows.map(row => ({
-            ...row,
-            images: JSON.parse(row.images),
-          }));
-
-          resolve(validItems);
+          resolve(
+            rows.map(row => ({
+              ...row,
+              images: JSON.parse(row.images),
+              sizes: JSON.parse(row.sizes),
+            })),
+          );
         },
       );
     });
 
-    res.status(200).json(cartItems);
+    res.status(200).json(favoriteItems);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Server error' });
@@ -194,10 +210,10 @@ router.get('/', authenticateToken, async (req, res) => {
 
 /**
  * @swagger
- * /api/cart/{id}:
+ * /api/favorites/{id}:
  *   delete:
- *     summary: Удалить товар из корзины по его ID.
- *     tags: [Cart]
+ *     summary: Удалить товар из избранного по его ID.
+ *     tags: [Favorites]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -206,10 +222,10 @@ router.get('/', authenticateToken, async (req, res) => {
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID товара в корзине.
+ *         description: ID товара в избранном.
  *     responses:
  *       200:
- *         description: Товар успешно удален из корзины.
+ *         description: Товар успешно удален из избранного.
  *         content:
  *           application/json:
  *             schema:
@@ -232,7 +248,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const result = await new Promise((resolve, reject) => {
       db.run(
-        'DELETE FROM cart WHERE id = ? AND user_id = ?',
+        'DELETE FROM favorites WHERE product_id = ? AND user_id = ?',
         [id, userId],
         function (err) {
           if (err) return reject(err);
@@ -242,10 +258,10 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     });
 
     if (result === 0) {
-      return res.status(404).json({ error: 'Cart item not found' });
+      return res.status(404).json({ error: 'Favorite item not found' });
     }
 
-    res.status(200).json({ message: 'Cart item deleted' });
+    res.status(200).json({ message: 'Favorite item deleted' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Server error' });

@@ -10,7 +10,7 @@ export default function MainPage() {
     <>
       <MainCarousel />
       <WomanMan />
-      <Search />
+
       <Outlet />
       <LeafletMap />
     </>

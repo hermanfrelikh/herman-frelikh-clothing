@@ -15,7 +15,7 @@ import MainPage from './components/pages/MainPage';
 import ProductPage from './components/pages/ProductPage';
 import Profile from './components/pages/Profile';
 import Registration from './components/pages/Registration';
-import PrivateRoute from './components/PrivateRoute'; // Импортируем PrivateRoute
+import PrivateRoute from './components/PrivateRoute';
 import GenderProduct from './components/UI/GenderProduct';
 import PopularProducts from './components/UI/PopularProducts';
 import { setProducts } from './redux/slices/productsSlice';
