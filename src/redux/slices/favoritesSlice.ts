@@ -1,82 +1,108 @@
+// favoritesSlice.ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
 
-// Тип Product (должен соответствовать структуре данных)
-export interface Product {
-  id: number;
-  title: string;
-  price: number;
-  description: string | null;
-  category: string;
-  image: string | null;
-  images: string[];
-  gender: string;
-  sizes: string[];
-  rating: number;
-}
+import { Product } from '../../@types/Product';
 
-// Интерфейс состояния
+// === API URL ===
+const FAVORITES_API = 'http://localhost:3003/api/favorites';
+const PRODUCTS_API = 'http://localhost:3002/api/products';
+
 interface FavoritesState {
   items: Product[];
   loading: boolean;
   error: string | null;
 }
 
-// Начальное состояние
 const initialState: FavoritesState = {
-  items: JSON.parse(localStorage.getItem('favorites') || '[]'), // Загружаем данные из localStorage
+  items: [],
   loading: false,
   error: null,
 };
 
-// Добавление товара в избранное
+// === Загрузка избранного с бэка + обогащение данными ===
+export const fetchFavorites = createAsyncThunk(
+  'favorites/fetchFavorites',
+  async () => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No token found');
+
+    // 1. Получаем ID товаров из избранного
+    const favRes = await axios.get(FAVORITES_API, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const favoriteItems = favRes.data as Array<{ product_id: number }>;
+
+    // 2. Получаем все товары
+    const productsRes = await axios.get(PRODUCTS_API);
+    const products = productsRes.data as Product[];
+
+    // 3. Фильтруем товары, которые в избранном
+    return products.filter(p =>
+      favoriteItems.some(fav => fav.product_id === p.id),
+    );
+  },
+);
+
+// === Добавление в избранное ===
 export const addToFavorites = createAsyncThunk(
   'favorites/addToFavorites',
-  async (product: Product, { rejectWithValue }) => {
-    try {
-      return product; // Возвращаем товар для добавления
-    } catch (error: any) {
-      return rejectWithValue(error.message || 'Failed to add to favorites');
-    }
+  async (product: Product, { dispatch }) => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No token found');
+
+    await axios.post(
+      FAVORITES_API,
+      { product_id: product.id },
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+
+    // Перезагружаем избранное с сервера
+    dispatch(fetchFavorites());
+    return product; // для совместимости (не используется напрямую)
   },
 );
 
-// Удаление товара из избранного
+// === Удаление из избранного ===
 export const removeFromFavorites = createAsyncThunk(
   'favorites/removeFromFavorites',
-  async (id: number, { rejectWithValue }) => {
-    try {
-      return id; // Возвращаем ID товара для удаления
-    } catch (error: any) {
-      return rejectWithValue(
-        error.message || 'Failed to remove from favorites',
-      );
-    }
+  async (id: number, { dispatch }) => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('No token found');
+
+    await axios.delete(`${FAVORITES_API}/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    dispatch(fetchFavorites());
+    return id;
   },
 );
 
-// Создаем слайс
+// === Слайс ===
 export const favoritesSlice = createSlice({
   name: 'favorites',
   initialState,
   reducers: {},
   extraReducers: builder => {
     builder
-      // Добавление товара в избранное
-      .addCase(addToFavorites.fulfilled, (state, action) => {
-        if (!state.items.some(item => item.id === action.payload.id)) {
-          state.items.push(action.payload); // Добавляем новый товар в массив
-          localStorage.setItem('favorites', JSON.stringify(state.items)); // Сохраняем в localStorage
-        }
+      .addCase(fetchFavorites.pending, state => {
+        state.loading = true;
+        state.error = null;
       })
-      // Удаление товара из избранного
-      .addCase(removeFromFavorites.fulfilled, (state, action) => {
-        state.items = state.items.filter(item => item.id !== action.payload); // Удаляем товар по ID
-        localStorage.setItem('favorites', JSON.stringify(state.items)); // Обновляем localStorage
+      .addCase(fetchFavorites.fulfilled, (state, action) => {
+        state.items = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchFavorites.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch favorites';
       });
+    // addToFavorites и removeFromFavorites не изменяют state напрямую — они вызывают fetchFavorites
   },
 });
 
-// Селектор для получения избранных товаров
 export const selectFavorites = (state: { favorites: FavoritesState }) =>
   state.favorites.items;
 

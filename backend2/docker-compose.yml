@@ -1,0 +1,21 @@
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./auth-service/auth.db:/app/auth.db
+
+  catalog-service:
+    build: ./catalog-service
+    ports:
+      - '3002:3002'
+    volumes:
+      - ./catalog-service/catalog.db:/app/catalog.db
+
+  cart-service:
+    build: ./cart-service
+    ports:
+      - '3003:3003'
+    volumes:
+      - ./cart-service/cart.db:/app/cart.db

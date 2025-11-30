@@ -3,7 +3,8 @@ import axios from 'axios';
 
 import { CartItem } from '../../@types/CartItem';
 
-const API_BASE_URL = 'http://localhost:3001/api/cart';
+const CART_API = 'http://localhost:3003/api/cart';
+const PRODUCTS_API = 'http://localhost:3002/api/products';
 
 interface CartState {
   items: CartItem[];
@@ -17,64 +18,68 @@ const initialState: CartState = {
   error: null,
 };
 
-// Асинхронный thunk для загрузки корзины
 export const fetchCart = createAsyncThunk('cart/fetchCart', async () => {
   const token = localStorage.getItem('token');
   if (!token) throw new Error('No token found');
 
-  const response = await axios.get(API_BASE_URL, {
+  const cartRes = await axios.get(CART_API, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return response.data as CartItem[];
-});
+  const productsRes = await axios.get(PRODUCTS_API);
 
-// Асинхронный thunk для добавления товара в корзину
-export const addToCart = createAsyncThunk(
-  'cart/addToCart',
-  async ({
-    product_id,
-    size,
-    quantity,
-    title,
-    price,
-    images,
-  }: {
+  const cartItems = cartRes.data as Array<{
+    id: number;
     product_id: number;
     size: string;
     quantity: number;
-    title: string;
-    price: number;
-    images: string[];
-  }) => {
+  }>;
+  const products = productsRes.data as Array<
+    Omit<CartItem, 'id' | 'size' | 'quantity'>
+  >;
+
+  return cartItems
+    .map(item => {
+      const prod = products.find(p => p.id === item.product_id);
+      return prod ? { ...item, ...prod } : null;
+    })
+    .filter(Boolean) as CartItem[];
+});
+
+export const addToCart = createAsyncThunk(
+  'cart/addToCart',
+  async (
+    {
+      product_id,
+      size,
+      quantity,
+    }: { product_id: number; size: string; quantity: number },
+    { dispatch },
+  ) => {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('No token found');
 
-    const response = await axios.post(
-      API_BASE_URL,
-      { product_id, size, quantity, title, price, images },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+    await axios.post(
+      CART_API,
+      { product_id, size, quantity },
+      { headers: { Authorization: `Bearer ${token}` } },
     );
-    return response.data as CartItem;
+    dispatch(fetchCart());
   },
 );
 
-// Асинхронный thunk для удаления товара из корзины
 export const removeFromCart = createAsyncThunk(
   'cart/removeFromCart',
   async (id: number) => {
     const token = localStorage.getItem('token');
     if (!token) throw new Error('No token found');
 
-    await axios.delete(`${API_BASE_URL}/${id}`, {
+    await axios.delete(`${CART_API}/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return id;
   },
 );
 
-// Создание слайса для корзины
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -92,22 +97,6 @@ const cartSlice = createSlice({
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch cart';
-      })
-      .addCase(addToCart.fulfilled, (state, action) => {
-        // Проверяем, существует ли уже такой товар в корзине
-        const existingItem = state.items.find(
-          item =>
-            item.product_id === action.payload.product_id &&
-            item.size === action.payload.size,
-        );
-
-        if (existingItem) {
-          // Если товар уже есть, увеличиваем его количество
-          existingItem.quantity += action.payload.quantity;
-        } else {
-          // Если товара нет, добавляем новый элемент
-          state.items.push(action.payload);
-        }
       })
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item.id !== action.payload);

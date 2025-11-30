@@ -27,7 +27,7 @@ function App() {
 
   useLayoutEffect(() => {
     axios
-      .get('http://localhost:3001/api/products')
+      .get('http://localhost:3002/api/products')
       .then(function (response) {
         dispatch(setProducts(response.data));
       })
