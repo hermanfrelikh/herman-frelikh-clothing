@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+// Favorites.tsx
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
+import { clearFavoritesError } from '../../../redux/slices/favoritesSlice';
 import { RootState } from '../../../redux/store';
 import BackButton from '../../UI/BackButton';
 import Products from '../../UI/Products';
@@ -9,13 +11,23 @@ import Sort from '../../UI/Sort';
 import styles from './Favorites.module.scss';
 
 export default function Favorites() {
-  const favoritesProducts = useSelector(
-    (state: RootState) => state.favoritesSlice.items,
+  const dispatch = useDispatch();
+  const favoritesState = useSelector(
+    (state: RootState) => state.favoritesSlice,
   );
+  const { items: favoritesProducts, loading, error } = favoritesState;
 
   const [searchQuery, setSearchQuery] = useState('');
-
   const [sortType, setSortType] = useState('name-asc');
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        dispatch(clearFavoritesError());
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, dispatch]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -52,6 +64,8 @@ export default function Favorites() {
 
       <h2 className={styles.favorites__title}>Избранные</h2>
 
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
       <div className={styles.favorites__search}>
         <Search onSearch={handleSearch} />
       </div>
@@ -60,7 +74,9 @@ export default function Favorites() {
         <Sort onSortChange={setSortType} />
       </div>
 
-      {sortedProducts.length === 0 ? (
+      {loading ? (
+        <p className={styles.loadingMessage}>Загрузка...</p>
+      ) : sortedProducts.length === 0 ? (
         <p className={styles.emptyMessage}>
           {searchQuery
             ? 'Нет результатов по вашему запросу'

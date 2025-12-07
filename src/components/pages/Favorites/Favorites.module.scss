@@ -20,3 +20,17 @@
     margin-left: 30px;
   }
 }
+.errorMessage {
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.loadingMessage {
+  text-align: center;
+  color: #666;
+  margin-top: 20px;
+}
